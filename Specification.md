@@ -76,4 +76,5 @@ An example cron job entry to run every 30 minutes:
 
 It should consist of a script `worklog.sh` that starts the application, a Javascript file `worklog.js` that is 
 started with node.js and a HTML file `worklog.html` that is served by `worklog.js`. It must not rely on any external 
-libraries.
+libraries. The directory should be given as argument to worklog.sh (but with a default value of `~/worklog`)
+and passed as argument to worklog.js. Use bootstrap for the UI.
