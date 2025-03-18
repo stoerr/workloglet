@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Hour Logging</title>
+  <!-- Bootstrap CSS from CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { padding-top: 50px; }
+    .container { max-width: 600px; }
+    #new-task-group { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4">Work Hour Logging</h1>
+    <form id="logForm">
+      <div class="mb-3">
+        <label for="taskSelect" class="form-label">Task</label>
+        <select class="form-select" id="taskSelect" name="task" required>
+          <option value="" disabled selected>Select a task</option>
+        </select>
+      </div>
+      <div class="mb-3" id="new-task-group">
+        <label for="newtask" class="form-label">New Task</label>
+        <input type="text" class="form-control" id="newtask" name="newtask" placeholder="Enter new task">
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Additional details"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+      <div id="error-message" class="text-danger mt-3"></div>
+    </form>
+  </div>
+  
+  <!-- Bootstrap Bundle with Popper (optional if needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const taskSelect = document.getElementById('taskSelect');
+      const newTaskGroup = document.getElementById('new-task-group');
+      const logForm = document.getElementById('logForm');
+      const errorMessage = document.getElementById('error-message');
+      
+      // Fetch tasks from the server
+      fetch('/tasks')
+        .then(response => response.json())
+        .then(tasks => {
+          tasks.forEach(task => {
+            const option = document.createElement('option');
+            option.value = task;
+            option.textContent = task;
+            taskSelect.appendChild(option);
+          });
+          // Add the 'Other' option
+          const otherOption = document.createElement('option');
+          otherOption.value = 'Other';
+          otherOption.textContent = 'Other...';
+          taskSelect.appendChild(otherOption);
+        })
+        .catch(err => {
+          errorMessage.textContent = 'Error loading tasks: ' + err;
+        });
+      
+      // Toggle new task input based on selection
+      taskSelect.addEventListener('change', function() {
+        if (this.value === 'Other') {
+          newTaskGroup.style.display = 'block';
+        } else {
+          newTaskGroup.style.display = 'none';
+        }
+      });
+      
+      // Handle form submission
+      logForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        errorMessage.textContent = '';
+
+        const formData = new FormData(logForm);
+        const params = new URLSearchParams();
+        for (const pair of formData.entries()) {
+          params.append(pair[0], pair[1]);
+        }
+        
+        fetch('/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params
+        })
+        .then(response => response.text())
+        .then(text => {
+          alert(text);
+          // Optionally redirect or close window
+        })
+        .catch(err => {
+          errorMessage.textContent = 'Submission failed: ' + err;
+        });
+      });
+    });
+  </script>
+</body>
+</html>
