@@ -31,7 +31,7 @@ function getISOWeek(date) {
   return { year: date.getFullYear(), week: (weekNumber < 10 ? '0' + weekNumber : weekNumber) };
 }
 
-// Helper: Get list of tasks from last 3 worklog files
+// Helper: Get unique list of tasks from last 3 worklog files, sorted by most recent first
 function getRecentTasks() {
   let tasks = [];
   try {
@@ -40,13 +40,11 @@ function getRecentTasks() {
     const logFiles = files.filter(file => /^worklog_\d{4}-W\d{2}\.jsonl$/.test(file));
     // Sort files in descending order (most recent first) based on filename
     logFiles.sort((a, b) => {
-      // extract the YYYY-WW part
       const aPart = a.match(/worklog_(\d{4}-W\d{2})\.jsonl/)[1];
       const bPart = b.match(/worklog_(\d{4}-W\d{2})\.jsonl/)[1];
       return bPart.localeCompare(aPart);
     });
     const recentFiles = logFiles.slice(0, 3);
-    // For each file, read lines and parse tasks
     recentFiles.forEach(file => {
       const content = fs.readFileSync(path.join(logDir, file), 'utf8');
       const lines = content.split(/\r?\n/);
@@ -58,17 +56,24 @@ function getRecentTasks() {
               tasks.push({ task: entry.task, timestamp: entry.timestamp });
             }
           } catch (err) {
-            // skip malformed JSON line
+            // Skip malformed JSON line
           }
         }
       });
     });
     // Sort tasks by timestamp descending
-    tasks.sort((a, b) => {
-      return new Date(b.timestamp) - new Date(a.timestamp);
-    });
-    // Return only the task names in order, up to 20 tasks
-    return tasks.slice(0, 20).map(e => e.task);
+    tasks.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // Build unique list preserving order
+    const uniqueTasks = [];
+    const seen = new Set();
+    for (const entry of tasks) {
+      if (!seen.has(entry.task)) {
+        seen.add(entry.task);
+        uniqueTasks.push(entry.task);
+      }
+      if (uniqueTasks.length >= 20) break;
+    }
+    return uniqueTasks;
   } catch (err) {
     console.error('Error fetching tasks:', err);
     return [];
@@ -93,7 +98,7 @@ const server = http.createServer((req, res) => {
       }
     });
   } else if (req.method === 'GET' && pathname === '/tasks') {
-    // Endpoint to return recent tasks in JSON format
+    // Endpoint to return recent unique tasks in JSON format
     const tasks = getRecentTasks();
     res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(JSON.stringify(tasks));
@@ -103,9 +108,7 @@ const server = http.createServer((req, res) => {
       body += chunk;
     });
     req.on('end', () => {
-      // Assume content-type is application/x-www-form-urlencoded
       const postData = querystring.parse(body);
-      // Determine the task: if task is 'Other', then use newtask
       let task = postData.task;
       if (task === 'Other') {
         task = postData.newtask || '';
@@ -113,24 +116,21 @@ const server = http.createServer((req, res) => {
       const description = postData.description || '';
       const timestamp = new Date().toISOString();
       
-      // Prepare log entry
       const logEntry = { timestamp, task, description };
       const logLine = JSON.stringify(logEntry) + "\n";
 
-      // Determine log file name based on current ISO week
       const { year, week } = getISOWeek(new Date());
       const logFileName = `worklog_${year}-W${week}.jsonl`;
       const logFilePath = path.join(logDir, logFileName);
       
-      // Append log entry to file
       fs.appendFile(logFilePath, logLine, (err) => {
         if (err) {
           res.writeHead(500, {'Content-Type': 'text/plain'});
           res.end('Error writing log entry');
         } else {
           res.writeHead(200, {'Content-Type': 'text/plain'});
-          res.end('Log entry recorded. Closing application.');
-          // Give the response a moment and then exit the process
+          res.end('');
+          // Give the response a moment then exit the process
           setTimeout(() => {
             process.exit(0);
           }, 1000);

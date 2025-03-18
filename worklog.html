@@ -91,8 +91,10 @@
         })
         .then(response => response.text())
         .then(text => {
-          alert(text);
-          // Optionally redirect or close window
+          if (text) alert(text);
+          // Attempt to close the browser tab
+          window.open('', '_self', '');
+          window.close();
         })
         .catch(err => {
           errorMessage.textContent = 'Submission failed: ' + err;

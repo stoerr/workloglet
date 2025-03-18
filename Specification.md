@@ -59,7 +59,7 @@ Example entry in a weekly log file:
   - A text area for description.
   - A submit button.
   - Error messages for any issues encountered.
-  - If the submission was successful, the application closes itself and also the browser tab.
+  - If the submission was successful, the application closes itself and also the browser tab. No alert or anything.
 
 ## Cron Job Example
 
