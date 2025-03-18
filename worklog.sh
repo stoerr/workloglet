@@ -13,7 +13,7 @@ LOG_DIR=$(eval echo $LOG_DIR)
 mkdir -p "$LOG_DIR"
 
 # Start the Node.js application in the background
-node worklog.js "$LOG_DIR" &
+node $(dirname $0)/worklog.js "$LOG_DIR" &
 APP_PID=$!
 
 # Open the default browser to the application (assume port 3000)

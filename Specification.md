@@ -55,11 +55,12 @@ Example entry in a weekly log file:
 - A simple web page with:
   - A dropdown menu listing the last 20 tasks, based on the last 3 worklog files. The entries in the dropdown are 
     sorted by the most recent date, but should be unique.
-  - A text input field for new task entry.
+  - A text input field for new task entry. It should only be shown if the 'Other' entry is selected in the dropdown.
   - A text area for description.
-  - A submit button.
+  - A submit button and a skip button.
   - Error messages for any issues encountered.
   - If the submission was successful, the application closes itself and also the browser tab. No alert or anything.
+  - If the skip button is pressed, the application closes itself and also the browser tab. No alert or anything.
 
 ## Cron Job Example
 
@@ -78,5 +79,5 @@ An example cron job entry to run every 30 minutes:
 
 It should consist of a script `worklog.sh` that starts the application, a Javascript file `worklog.js` that is 
 started with node.js and a HTML file `worklog.html` that is served by `worklog.js`. It must not rely on any external 
-libraries. The directory should be given as argument to worklog.sh (but with a default value of `~/worklog`)
+libraries. The directory should be given as argument to worklog.sh (but with a default value of `./worklog`)
 and passed as argument to worklog.js. Use bootstrap for the UI, loaded from CDN.

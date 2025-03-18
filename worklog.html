@@ -30,7 +30,8 @@
         <label for="description" class="form-label">Description</label>
         <textarea class="form-control" id="description" name="description" rows="3" placeholder="Additional details"></textarea>
       </div>
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <button type="submit" class="btn btn-primary me-2">Submit</button>
+      <button type="button" id="skipButton" class="btn btn-secondary">Skip</button>
       <div id="error-message" class="text-danger mt-3"></div>
     </form>
   </div>
@@ -42,6 +43,7 @@
       const taskSelect = document.getElementById('taskSelect');
       const newTaskGroup = document.getElementById('new-task-group');
       const logForm = document.getElementById('logForm');
+      const skipButton = document.getElementById('skipButton');
       const errorMessage = document.getElementById('error-message');
       
       // Fetch tasks from the server
@@ -90,15 +92,28 @@
           body: params
         })
         .then(response => response.text())
-        .then(text => {
-          if (text) alert(text);
-          // Attempt to close the browser tab
+        .then(() => {
+          // On submission success, close the tab without showing an alert
           window.open('', '_self', '');
           window.close();
         })
         .catch(err => {
           errorMessage.textContent = 'Submission failed: ' + err;
         });
+      });
+      
+      // Handle skip button click to terminate the server and then close the application
+      skipButton.addEventListener('click', function() {
+        fetch('/skip')
+          .then(() => {
+            window.open('', '_self', '');
+            window.close();
+          })
+          .catch(() => {
+            // In case the request fails, still attempt to close the browser
+            window.open('', '_self', '');
+            window.close();
+          });
       });
     });
   </script>

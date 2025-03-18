@@ -8,7 +8,7 @@ const url = require('url');
 const querystring = require('querystring');
 
 // Get the log directory from command line argument, or default
-const logDir = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(process.env.HOME || process.env.USERPROFILE, 'worklog');
+const logDir = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve('worklog');
 
 // Ensure the log directory exists
 if (!fs.existsSync(logDir)) {
@@ -137,6 +137,13 @@ const server = http.createServer((req, res) => {
         }
       });
     });
+  } else if (req.method === 'GET' && pathname === '/skip') {
+    // Endpoint to skip logging: simply terminate the server
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.end('');
+    setTimeout(() => {
+      process.exit(0);
+    }, 1000);
   } else {
     res.writeHead(404, {'Content-Type': 'text/plain'});
     res.end('Not Found');
