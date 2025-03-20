@@ -70,7 +70,8 @@ A simple web page with:
 - Error messages for any issues encountered.
 - If the submission was successful, the application closes itself and also the browser tab. No alert or anything.
 - If the skip button is pressed, the application closes itself and also the browser tab. No alert or anything.
-- The "List" button goes to the list page.
+- The "List" button goes to the list page. The list page should be opened with window.open so that it can be closed 
+  by script again.
 
 ### List page - listing the work
 
