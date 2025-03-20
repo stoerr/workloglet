@@ -1,0 +1,77 @@
+/* Base styles for the Work Hour Logging Application */
+body {
+  background-color: #eaeaea;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Container styles */
+.container {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 30px auto;
+  max-width: 600px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Specific styling for the worklog entry page */
+.worklog {
+  padding-top: 50px;
+}
+
+/* Hide new task group initially */
+#new-task-group {
+  display: none;
+}
+
+/* List page container can be wider */
+.list-container {
+  max-width: 800px;
+  margin: 30px auto;
+}
+
+/* Day group styling for log listing */
+.day-group {
+  margin-bottom: 2rem;
+}
+
+/* Task group styling within each day */
+.task-group {
+  margin-left: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Sticky Quit button styling for the list page */
+#quitButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 12px;
+  padding: 10px 20px;
+}
+
+/* Headings with a subtle macOS-like silvery touch */
+h1, h2, h4 {
+  color: #333;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+/* Form controls styling */
+.form-control, .form-select {
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* Button styling */
+.btn-primary, .btn-secondary, .btn-info, .btn-danger {
+  border-radius: 8px;
+}
+
+/* Error message styling */
+#error-message {
+  font-weight: bold;
+  margin-top: 10px;
+}

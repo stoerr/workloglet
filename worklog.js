@@ -124,6 +124,18 @@ const server = http.createServer((req, res) => {
         res.end(data);
       }
     });
+  } else if (req.method === 'GET' && pathname === '/worklog.css') {
+    // Serve worklog.css
+    const filePath = path.join(__dirname, 'worklog.css');
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(500, {'Content-Type': 'text/plain'});
+        res.end('Error loading CSS file');
+      } else {
+        res.writeHead(200, {'Content-Type': 'text/css'});
+        res.end(data);
+      }
+    });
   } else if (req.method === 'GET' && pathname === '/tasks') {
     // Endpoint to return recent unique tasks in JSON format
     const tasks = getRecentTasks();
@@ -205,3 +217,7 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+/*
+Note: The specification mentions a shell script (worklog.sh) to launch the application, but it is not present in the current repository.
+*/
