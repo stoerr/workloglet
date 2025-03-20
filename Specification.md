@@ -1,10 +1,8 @@
-**Work Hour Logging Application - Specification**
+# Work Hour Logging Application - Specification
 
 ## Overview
 
-The Work Hour Logging Application is a lightweight web-based tool designed to help users log their work hours
-efficiently. It is initiated by a cron job every 30 minutes, prompting the user to log their recent work. The data is
-stored in JSONL format, with a separate log file for each week.
+The Work Hour Logging Application is a lightweight web-based tool designed to help users log their work hours efficiently. It is initiated by a cron job every 30 minutes, prompting the user to log their recent work. The data is stored in JSONL format, with a separate log file for each week.
 
 ## Components
 
@@ -62,25 +60,25 @@ Example entry in a weekly log file:
 
 A simple web page with:
 
-- A dropdown menu listing the last 20 tasks, based on the last 3 worklog files. The entries in the dropdown are
-  sorted by the most recent date, but should be unique.
+- A dropdown menu listing the last 20 tasks, based on the last 3 worklog files. The entries in the dropdown are sorted by the most recent date, but should be unique.
 - A text input field for new task entry. It should only be shown if the 'Other' entry is selected in the dropdown.
 - A text area for description.
 - A submit button and a skip button, and a "List" button.
 - Error messages for any issues encountered.
 - If the submission was successful, the application closes itself and also the browser tab. No alert or anything.
 - If the skip button is pressed, the application closes itself and also the browser tab. No alert or anything.
-- The "List" button goes to the list page. The list page should be opened with window.open so that it can be closed 
-  by script again.
+- The "List" button goes to the list page. The list page should be opened with window.open so that it can be closed by script again.
 
 ### List page - listing the work
 
 A simple web page with:
 
-- A table listing all entries from the last 3 worklog files.
+- A table listing all entries from the last 3 worklog files (or alternatively, a grouped layout using divs).
 - The entries should be grouped by day, with the date and weekday as a header.
-- For each day the entries should be grouped by task. For each task, the time and descriptions should be listed.
+- For each day, the entries should be grouped by task. For each task, the time and descriptions should be listed.
 - A quit button that terminates the application and closes the browser tab. The quit button should be sticky at the bottom of the page.
+
+*Note:* Although the specification mentions a table, using a grouped layout with divs (as implemented) is acceptable if it meets the grouping requirements and provides a responsive, MacOS-inspired UI.
 
 ## Cron Job Example
 
@@ -97,8 +95,6 @@ An example cron job entry to run every 30 minutes:
 
 ## Architecture
 
-It should consist of a script `worklog.sh` that starts the application, a Javascript file `worklog.js` that is
-started with node.js and a HTML file `worklog.html` that is served by `worklog.js`. It must not rely on any external
-libraries. The directory should be given as argument to worklog.sh (but with a default value of `./worklog`)
-and passed as argument to worklog.js. Use bootstrap for the UI, loaded from CDN.
-The list page is a HTML file `list.html` that is also served by `worklog.js`.
+It should consist of a script `worklog.sh` that starts the application, a JavaScript file `worklog.js` that is started with Node.js and an HTML file `worklog.html` that is served by `worklog.js`. It must not rely on any external libraries. The directory should be given as argument to worklog.sh (but with a default value of `./worklog`) and passed as argument to worklog.js. The list page is an HTML file `list.html` that is also served by `worklog.js`. Use Bootstrap for the UI, loaded from CDN.
+
+The UI should be nicely, friendly and professional looking, with a MacOS-like silvery touch and rounded edges.
