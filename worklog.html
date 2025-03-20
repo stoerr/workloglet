@@ -131,9 +131,9 @@
           });
       });
       
-      // Handle list button click to open list page in a new window
+      // Handle list button click to open list page in the same window using window.open
       listButton.addEventListener('click', function() {
-        window.open('/list', '_blank');
+        window.open('/list', '_self');
       });
     });
   </script>
