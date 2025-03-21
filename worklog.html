@@ -13,14 +13,16 @@
     <h1 class="mb-4">Work Hour Logging</h1>
     <form id="logForm">
       <div class="mb-3">
-        <label for="taskSelect" class="form-label">Task</label>
-        <select class="form-select" id="taskSelect" name="task" required>
+        <label for="taskSelect" class="form-label">Select Task</label>
+        <!-- Removed name attribute per specification -->
+        <select class="form-select" id="taskSelect" required>
           <option value="" disabled selected>Select a task</option>
         </select>
       </div>
       <div class="mb-3" id="new-task-group">
-        <label for="newtask" class="form-label">New Task</label>
-        <input type="text" class="form-control" id="newtask" name="newtask" placeholder="Enter new task">
+        <label for="newtask" class="form-label">Task</label>
+        <!-- Changed name from "newtask" to "task" so that the input field is the one sent -->
+        <input type="text" class="form-control" id="newtask" name="task" placeholder="Enter task">
       </div>
       <div class="mb-3">
         <label for="description" class="form-label">Description</label>
@@ -28,6 +30,7 @@
       </div>
       <button type="submit" class="btn btn-primary me-2">Submit</button>
       <button type="button" id="skipButton" class="btn btn-secondary">Skip</button>
+      <button type="button" id="copyButton" class="btn btn-warning ms-2">Copy from last</button>
       <button type="button" id="listButton" class="btn btn-info ms-2">List</button>
       <div id="error-message" class="text-danger mt-3"></div>
     </form>
@@ -38,9 +41,10 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const taskSelect = document.getElementById('taskSelect');
-      const newTaskGroup = document.getElementById('new-task-group');
+      const newTaskInput = document.getElementById('newtask');
       const logForm = document.getElementById('logForm');
       const skipButton = document.getElementById('skipButton');
+      const copyButton = document.getElementById('copyButton');
       const listButton = document.getElementById('listButton');
       const errorMessage = document.getElementById('error-message');
       
@@ -64,26 +68,52 @@
           errorMessage.textContent = 'Error loading tasks: ' + err;
         });
       
-      // Toggle new task input based on selection
+      // Update newTaskInput based on dropdown selection
       taskSelect.addEventListener('change', function() {
         if (this.value === 'Other') {
-          newTaskGroup.style.display = 'block';
+          newTaskInput.value = '';
         } else {
-          newTaskGroup.style.display = 'none';
+          newTaskInput.value = this.value;
         }
+      });
+      
+      // Handle Copy from last button click to fill task and description
+      copyButton.addEventListener('click', function() {
+        fetch('/logs')
+          .then(response => response.json())
+          .then(function(entries) {
+            if (entries.length > 0) {
+              const lastEntry = entries[0];
+              // Try to set the dropdown to the task if it exists
+              let found = false;
+              for (let i = 0; i < taskSelect.options.length; i++) {
+                if (taskSelect.options[i].value === lastEntry.task) {
+                  taskSelect.value = lastEntry.task;
+                  found = true;
+                  break;
+                }
+              }
+              if (!found) {
+                taskSelect.value = 'Other';
+              }
+              newTaskInput.value = lastEntry.task;
+              document.getElementById('description').value = lastEntry.description;
+            }
+          })
+          .catch(function(error) {
+            errorMessage.textContent = 'Error copying last entry: ' + error;
+          });
       });
       
       // Handle form submission
       logForm.addEventListener('submit', function(e) {
         e.preventDefault();
         errorMessage.textContent = '';
-
-        // Validate new task input if "Other" is selected
-        if (taskSelect.value === 'Other' && document.getElementById('newtask').value.trim() === '') {
-          errorMessage.textContent = 'Please enter a new task.';
+        if (newTaskInput.value.trim() === '') {
+          errorMessage.textContent = 'Please enter a task.';
           return;
         }
-
+  
         const formData = new FormData(logForm);
         const params = new URLSearchParams();
         for (const pair of formData.entries()) {
@@ -95,7 +125,12 @@
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: params
         })
-        .then(response => response.text())
+        .then(response => {
+          if (!response.ok) {
+            return response.text().then(text => { throw new Error(text) });
+          }
+          return response.text();
+        })
         .then(() => {
           // On submission success, close the tab without showing an alert
           window.open('', '_self', '');

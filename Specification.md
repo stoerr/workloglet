@@ -61,12 +61,15 @@ Example entry in a weekly log file:
 A simple web page with:
 
 - A dropdown menu listing the last 20 tasks, based on the last 3 worklog files. The entries in the dropdown are sorted by the most recent date, but should be unique.
-- A text input field for new task entry. It should only be shown if the 'Other' entry is selected in the dropdown.
+- A text input field for new task entry. A drop down change should fill that field with the selected task, "other" 
+  clears it. That's what will be saved to the worklog - the drop down is just filling it.
 - A text area for description.
-- A submit button and a skip button, and a "List" button.
+- A "Submit" button and a "Skip" button, "Copy from last" button and a "List" button.
 - Error messages for any issues encountered.
 - If the submission was successful, the application closes itself and also the browser tab. No alert or anything.
 - If the skip button is pressed, the application closes itself and also the browser tab. No alert or anything.
+- If the "Copy from last" button is pressed, the drop down and text area should be filled from the last entry in the 
+  last worklog file.
 - The "List" button goes to the list page. The list page should be opened with window.open so that it can be closed by script again.
 
 ### List page - listing the work
@@ -104,5 +107,7 @@ The UI should be nicely, friendly and professional looking, with a MacOS-like si
 - The current implementation of the web application (files: worklog.html, list.html, worklog.js) closely follows the specification.
 - The UI has been adapted to have a clean, MacOS-style look with rounded elements and subtle shadows.
 - One point to note in the specification is that it mentions a shell script (`worklog.sh`) to launch and terminate the application, but this file is not present in the current repository. If needed, this script should be provided to manage the application lifecycle (especially for enforcing the 10-minute inactivity timeout).
+- Take care to open all parts of the application (worklog and list view) in the same browser tab and make sure it 
+  can be closed by the script (use window.open to make sure window.close works or something).
 
 Overall, aside from the missing `worklog.sh` (which may be intentional or provided separately), there are no critical errors in the code relative to the specification.

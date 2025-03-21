@@ -1,4 +1,4 @@
-// worklog.js: Node.js server for the Work Hour Logging Application
+// worklog.js: Node.js server for the Work Hour Logging Application (Updated)
 // Usage: node worklog.js [log_directory]
 
 const http = require('http');
@@ -148,10 +148,8 @@ const server = http.createServer((req, res) => {
     });
     req.on('end', () => {
       const postData = querystring.parse(body);
-      let task = postData.task;
-      if (task === 'Other') {
-        task = postData.newtask || '';
-      }
+      // Use the task from the text input; the dropdown just fills the input.
+      const task = postData.task || '';
       const description = postData.description || '';
       const timestamp = new Date().toISOString();
       
