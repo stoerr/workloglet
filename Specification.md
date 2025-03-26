@@ -63,6 +63,7 @@ A simple web page with:
 - A dropdown menu listing the last 20 tasks, based on the last 3 worklog files. The entries in the dropdown are sorted by the most recent date, but should be unique.
 - A text input field for new task entry. A drop down change should fill that field with the selected task, "other" 
   clears it. That's what will be saved to the worklog - the drop down is just filling it.
+  If the text field is filled, then the drop down should be set to "other".
 - A text area for description.
 - A "Submit" button and a "Skip" button, "Copy from last" button and a "List" button.
 - Error messages for any issues encountered.
@@ -79,6 +80,8 @@ A simple web page with:
 - A table listing all entries from the last 3 worklog files (or alternatively, a grouped layout using divs).
 - The entries should be grouped by day, with the date and weekday as a header.
 - For each day, the entries should be grouped by task. For each task, the time and descriptions should be listed.
+  If several consecutive entries have the same task and description they should be grouped together - first all 
+  times are listed and then the description.
 - A quit button that terminates the application and closes the browser tab. The quit button should be sticky at the bottom of the page.
 
 *Note:* Although the specification mentions a table, using a grouped layout with divs (as implemented) is acceptable if it meets the grouping requirements and provides a responsive, MacOS-inspired UI.

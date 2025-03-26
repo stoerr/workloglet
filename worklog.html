@@ -76,6 +76,13 @@
           newTaskInput.value = this.value;
         }
       });
+
+      // If user types in the new task field manually, set dropdown to 'Other'
+      newTaskInput.addEventListener('input', function() {
+        if (this.value.trim() !== '') {
+          taskSelect.value = 'Other';
+        }
+      });
       
       // Handle Copy from last button click to fill task and description
       copyButton.addEventListener('click', function() {
