@@ -33,10 +33,10 @@ case "$(uname)" in
     ;;
 esac
 
-# Wait for 10 minutes (600 seconds) for inactivity
+# Wait for 20 minutes (1200 seconds) for inactivity
 # If the application is still running after 10 minutes, kill it.
 
-TIMEOUT=600
+TIMEOUT=1200
 
 (sleep $TIMEOUT && kill $APP_PID 2>/dev/null && echo "Application terminated due to inactivity.") &
 

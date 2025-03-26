@@ -22,11 +22,6 @@ body {
   padding-top: 50px;
 }
 
-/* Hide new task group initially */
-#new-task-group {
-  display: none;
-}
-
 /* List page container can be wider */
 .list-container {
   max-width: 800px;
