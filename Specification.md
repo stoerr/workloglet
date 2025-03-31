@@ -60,6 +60,7 @@ Example entry in a weekly log file:
 
 A simple web page with:
 
+- The date and time the dialog was opened, in the same format as in the list.
 - A dropdown menu listing the last 20 tasks, based on the last 3 worklog files. The entries in the dropdown are sorted by the most recent date, but should be unique.
 - A text input field for new task entry. A drop down change should fill that field with the selected task, "other" 
   clears it. That's what will be saved to the worklog - the drop down is just filling it.
@@ -71,7 +72,9 @@ A simple web page with:
 - If the skip button is pressed, the application closes itself and also the browser tab. No alert or anything.
 - If the "Copy from last" button is pressed, the drop down and text area should be filled from the last entry in the 
   last worklog file.
-- The "List" button goes to the list page. The list page should be opened with window.open so that it can be closed by script again.
+- The "List" button goes to the list page. The list page should be opened via script so that it can be 
+  closed by script again, since otherwise the browsers security restrictions forbid closing the window. It should be
+  replace the worklog view, though, not open a new window or tab.
 
 ### List page - listing the work
 

@@ -64,7 +64,7 @@
               tasksGroup[entry.task].push(entry);
             });
 
-            // For each task, sort the entries by time (ascending) and build the list
+            // For each task, sort the entries by time (ascending) and build the list with grouping consecutive entries
             Object.keys(tasksGroup).forEach(function(task) {
               // Sort entries for this task by timestamp ascending
               tasksGroup[task].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -77,13 +77,32 @@
               taskGroupDiv.appendChild(taskHeader);
 
               const ul = document.createElement('ul');
-              tasksGroup[task].forEach(function(entry) {
-                const li = document.createElement('li');
-                // Extract time in a locale-specific format
-                const time = new Date(entry.timestamp).toLocaleTimeString();
-                li.textContent = time + ' - ' + entry.description;
-                ul.appendChild(li);
+              let group = [];
+
+              tasksGroup[task].forEach(function(entry, index, array) {
+                if (group.length === 0) {
+                  group.push(entry);
+                } else {
+                  if (entry.description === group[0].description) {
+                    group.push(entry);
+                  } else {
+                    // Group ended, output group
+                    const li = document.createElement('li');
+                    const times = group.map(e => new Date(e.timestamp).toLocaleTimeString()).join(', ');
+                    li.textContent = times + ' - ' + group[0].description;
+                    ul.appendChild(li);
+                    group = [entry];
+                  }
+                }
+                // At the end of the array, output the group if it exists
+                if (index === array.length - 1 && group.length > 0) {
+                  const li = document.createElement('li');
+                  const times = group.map(e => new Date(e.timestamp).toLocaleTimeString()).join(', ');
+                  li.textContent = times + ' - ' + group[0].description;
+                  ul.appendChild(li);
+                }
               });
+
               taskGroupDiv.appendChild(ul);
               dayGroupDiv.appendChild(taskGroupDiv);
             });
