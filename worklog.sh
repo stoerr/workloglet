@@ -16,6 +16,8 @@ mkdir -p "$LOG_DIR"
 node $(dirname $0)/worklog.js "$LOG_DIR" &
 APP_PID=$!
 
+sleep 1 # wait for startup
+
 # Open the default browser to the application (assume port 3000)
 
 case "$(uname)" in

@@ -42,13 +42,12 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Set and display the dialog opened time in the same format as the list header
+      // Set and display the dialog opened time in a format close to ISO date+time
       const openTimeElem = document.getElementById('openTime');
       const now = new Date();
-      const datePart = now.toISOString().split('T')[0];
-      const options = { weekday: 'long' };
-      const weekday = now.toLocaleDateString(undefined, options);
-      openTimeElem.textContent = `Dialog Opened: ${datePart} (${weekday})`;
+      const formattedDateTime = now.toISOString().replace('T', ' ').slice(0, 16);
+      const weekday = now.toLocaleDateString(undefined, { weekday: 'long' });
+      openTimeElem.textContent = `Dialog Opened: ${formattedDateTime} (${weekday})`;
       
       const taskSelect = document.getElementById('taskSelect');
       const newTaskInput = document.getElementById('newtask');

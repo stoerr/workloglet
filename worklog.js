@@ -34,7 +34,7 @@ function getRecentTasks() {
     const files = fs.readdirSync(logDir);
     // Filter JSONL files with pattern worklog_YYYY-WW.jsonl
     const logFiles = files.filter(file => /^worklog_\d{4}-W\d{2}\.jsonl$/.test(file));
-    // Sort files in descending order (most recent first) based on filename
+    // Sort files in descending order (most recent first) based on filename using regex extraction
     logFiles.sort((a, b) => {
       const aPart = a.match(/worklog_(\d{4}-W\d{2})\.jsonl/)[1];
       const bPart = b.match(/worklog_(\d{4}-W\d{2})\.jsonl/)[1];
@@ -82,8 +82,12 @@ function getRecentEntries() {
   try {
     const files = fs.readdirSync(logDir);
     const logFiles = files.filter(file => /^worklog_\d{4}-W\d{2}\.jsonl$/.test(file));
-    // Sort files in descending order based on filename
-    logFiles.sort((a, b) => b.localeCompare(a));
+    // Sort files using regex extraction, consistent with getRecentTasks
+    logFiles.sort((a, b) => {
+      const aMatch = a.match(/worklog_(\d{4}-W\d{2})\.jsonl/);
+      const bMatch = b.match(/worklog_(\d{4}-W\d{2})\.jsonl/);
+      return bMatch[1].localeCompare(aMatch[1]);
+    });
     const recentFiles = logFiles.slice(0, 3);
     recentFiles.forEach(file => {
       const content = fs.readFileSync(path.join(logDir, file), 'utf8');
