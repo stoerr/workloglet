@@ -72,9 +72,9 @@ A simple web page with:
 - If the skip button is pressed, the application closes itself and also the browser tab. No alert or anything.
 - If the "Copy from last" button is pressed, the drop down and text area should be filled from the last entry in the 
   last worklog file.
-- The "List" button goes to the list page. The list page should be opened via script so that it can be 
-  closed by script again, since otherwise the browsers security restrictions forbid closing the window. It should be
-  replace the worklog view, though, not open a new window or tab.
+- The "List" button goes to the list page. The list page is loaded via fetch and replaces the whole document, so that
+  the window can still be script closed when the Quit button on that page is pressed, without violating browser
+  security restrictions.
 
 ### List page - listing the work
 

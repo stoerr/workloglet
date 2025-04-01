@@ -172,7 +172,16 @@
       
       // Handle list button click to open list page in the same window using window.open
       listButton.addEventListener('click', function() {
-        window.open('/list', '_self');
+        fetch('/list')
+          .then(response => response.text())
+          .then(html => {
+            document.open();
+            document.write(html);
+            document.close();
+          })
+          .catch(err => {
+            errorMessage.textContent = 'Error loading list: ' + err;
+          });
       });
     });
   </script>
