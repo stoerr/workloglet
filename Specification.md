@@ -65,7 +65,11 @@ A simple web page with:
 - A text input field for new task entry. A drop down change should fill that field with the selected task, "other" 
   clears it. That's what will be saved to the worklog - the drop down is just filling it.
   If the text field is filled, then the drop down should be set to "other".
-- A text area for description.
+- A text area for description with a minimum height of 10 lines that automatically expands if the content exceeds this height.
+- A button group for description controls containing:
+  - A "Dictate" button that enables speech-to-text input (press and hold to dictate)
+  - An "Undo" button to revert the last dictation
+  - A "Fixup" button to correct transcription errors and improve formatting
 - A "Submit" button and a "Skip" button, "Copy from last" button and a "List" button.
 - Error messages for any issues encountered.
 - If the submission was successful, the application closes itself and also the browser tab. No alert or anything.

@@ -28,8 +28,16 @@
       </div>
       <div class="mb-3">
         <label for="description" class="form-label">Description</label>
-        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Additional details"></textarea>
+        <textarea class="form-control" id="description" name="description" rows="10" placeholder="Additional details"></textarea>
+        
+        <!-- Dictation Controls -->
+        <div class="btn-group mt-2" role="group" aria-label="Description controls">
+          <button type="button" id="dictateButton" class="btn btn-outline-primary">Dictate</button>
+          <button type="button" id="undoButton" class="btn btn-outline-secondary">Undo</button>
+          <button type="button" id="fixupButton" class="btn btn-outline-info">Fixup</button>
+        </div>
       </div>
+      
       <button type="submit" class="btn btn-primary me-2">Submit</button>
       <button type="button" id="skipButton" class="btn btn-secondary">Skip</button>
       <button type="button" id="copyButton" class="btn btn-warning ms-2">Copy from last</button>
@@ -183,6 +191,184 @@
             errorMessage.textContent = 'Error loading list: ' + err;
           });
       });
+
+      // Dictation functionality implementation
+      const descriptionTextArea = document.getElementById('description');
+      const dictateButton = document.getElementById('dictateButton');
+      const undoButton = document.getElementById('undoButton');
+      const fixupButton = document.getElementById('fixupButton');
+      
+      // Store previous states for undo
+      let previousStates = [];
+      
+      // Check for SpeechRecognition support
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (!SpeechRecognition) {
+        dictateButton.disabled = true;
+        dictateButton.textContent = 'Dictation Not Supported';
+        errorMessage.textContent = 'Speech recognition is not supported in this browser.';
+      } else {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        let finalTranscript = '';
+        let isRecording = false;
+        
+        // Set up recognition
+        recognition.onresult = (event) => {
+          let interimTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript + ' ';
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+          
+          // Get cursor position
+          const cursorPosition = descriptionTextArea.selectionStart;
+          const beforeCursor = descriptionTextArea.value.substring(0, cursorPosition);
+          const afterCursor = descriptionTextArea.value.substring(cursorPosition);
+          
+          // Update text area with interim results
+          descriptionTextArea.value = beforeCursor + interimTranscript + afterCursor;
+          descriptionTextArea.selectionStart = cursorPosition + interimTranscript.length;
+          descriptionTextArea.selectionEnd = descriptionTextArea.selectionStart;
+        };
+        
+        recognition.onend = () => {
+          // If there was successful dictation, add final transcript to text area
+          if (finalTranscript) {
+            // Save current state for undo
+            previousStates.push(descriptionTextArea.value);
+            
+            // Get cursor position
+            const cursorPosition = descriptionTextArea.selectionStart;
+            const beforeCursor = descriptionTextArea.value.substring(0, cursorPosition);
+            const afterCursor = descriptionTextArea.value.substring(cursorPosition);
+            
+            // Add a space if needed
+            const needsSpaceBefore = beforeCursor.length > 0 && !beforeCursor.endsWith(' ');
+            const needsSpaceAfter = afterCursor.length > 0 && !afterCursor.startsWith(' ');
+            
+            // Update text area with final results
+            descriptionTextArea.value = 
+              beforeCursor + 
+              (needsSpaceBefore ? ' ' : '') + 
+              finalTranscript + 
+              (needsSpaceAfter ? ' ' : '') + 
+              afterCursor;
+              
+            // Position cursor after inserted text
+            const newCursorPosition = beforeCursor.length + 
+                                     (needsSpaceBefore ? 1 : 0) + 
+                                     finalTranscript.length;
+                                     
+            descriptionTextArea.selectionStart = newCursorPosition;
+            descriptionTextArea.selectionEnd = newCursorPosition;
+          }
+          
+          finalTranscript = '';
+          dictateButton.classList.remove('btn-danger');
+          dictateButton.classList.add('btn-outline-primary');
+          dictateButton.textContent = 'Dictate';
+          isRecording = false;
+        };
+        
+        recognition.onerror = (event) => {
+          errorMessage.textContent = 'Dictation error: ' + event.error;
+          recognition.stop();
+        };
+        
+        // Handle dictate button
+        dictateButton.addEventListener('mousedown', () => {
+          if (!isRecording) {
+            // Save current state before starting new dictation
+            previousStates.push(descriptionTextArea.value);
+            
+            dictateButton.classList.remove('btn-outline-primary');
+            dictateButton.classList.add('btn-danger');
+            dictateButton.textContent = 'Dictating...';
+            isRecording = true;
+            finalTranscript = '';
+            recognition.start();
+          }
+        });
+        
+        dictateButton.addEventListener('mouseup', () => {
+          if (isRecording) {
+            recognition.stop();
+          }
+        });
+        
+        // Touch support for mobile
+        dictateButton.addEventListener('touchstart', (e) => {
+          e.preventDefault(); // Prevent default touch behavior
+          if (!isRecording) {
+            // Save current state before starting new dictation
+            previousStates.push(descriptionTextArea.value);
+            
+            dictateButton.classList.remove('btn-outline-primary');
+            dictateButton.classList.add('btn-danger');
+            dictateButton.textContent = 'Dictating...';
+            isRecording = true;
+            finalTranscript = '';
+            recognition.start();
+          }
+        });
+        
+        dictateButton.addEventListener('touchend', (e) => {
+          e.preventDefault(); // Prevent default touch behavior
+          if (isRecording) {
+            recognition.stop();
+          }
+        });
+        
+        // Handle undo button
+        undoButton.addEventListener('click', () => {
+          if (previousStates.length > 0) {
+            descriptionTextArea.value = previousStates.pop();
+          }
+        });
+        
+        // Handle fixup button to improve formatting and correct errors
+        fixupButton.addEventListener('click', () => {
+          const text = descriptionTextArea.value.trim();
+          if (text) {
+            // Save current state for undo
+            previousStates.push(descriptionTextArea.value);
+            
+            // Simple fixup: Fix capitalization and common errors
+            let corrected = text;
+            
+            // Fix capitalization at beginning of sentences
+            corrected = corrected.replace(/(?:^|[.!?]\s+)([a-z])/g, (match, letter) => {
+              return match.replace(letter, letter.toUpperCase());
+            });
+            
+            // Fix common dictation errors
+            corrected = corrected
+              .replace(/\b(i)\b/g, 'I')  // Capitalize 'I'
+              .replace(/\s+/g, ' ')      // Reduce multiple spaces to one
+              .replace(/\s+([.,;:!?])/g, '$1')  // Remove spaces before punctuation
+              .replace(/comma/gi, ',')   // Replace spelled-out "comma" with ,
+              .replace(/period/gi, '.')  // Replace spelled-out "period" with .
+              .replace(/question mark/gi, '?')  // Replace "question mark" with ?
+              .replace(/exclamation mark|exclamation point/gi, '!') // Replace with !
+              .replace(/new line|newline|new paragraph/gi, '\n\n'); // Add paragraph breaks
+              
+            // Create rudimentary paragraphs
+            if (corrected.length > 100 && !corrected.includes('\n')) {
+              // Look for natural paragraph breaks (end of sentences followed by significant topic shifts)
+              corrected = corrected.replace(/\.\s+([A-Z][a-z]+\s(is|are|was|were|has|have|had|will|would|could|should|in|on|to|for|of|with|by|as|if|then|and|but|or|so)\b)/g, '.\n\n$1');
+            }
+            
+            descriptionTextArea.value = corrected;
+          }
+        });
+      }
     });
   </script>
 </body>
