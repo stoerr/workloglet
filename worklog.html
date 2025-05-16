@@ -1,375 +1,379 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Work Hour Logging</title>
-  <!-- Bootstrap CSS from CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/worklog.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Hour Logging</title>
+    <!-- Bootstrap CSS from CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/worklog.css">
 </head>
 <body class="worklog">
-  <div class="container worklog">
+<div class="container worklog">
     <h1 class="mb-4">Work Hour Logging</h1>
     <!-- Display the time the dialog was opened as per specification -->
     <p id="openTime" class="text-muted"></p>
     <form id="logForm">
-      <div class="mb-3">
-        <label for="taskSelect" class="form-label">Select Task</label>
-        <!-- Removed name attribute per specification -->
-        <select class="form-select" id="taskSelect" required>
-          <option value="" disabled selected>Select a task</option>
-        </select>
-      </div>
-      <div class="mb-3" id="new-task-group">
-        <label for="newtask" class="form-label">Task</label>
-        <!-- Changed name from "newtask" to "task" so that the input field is the one sent -->
-        <input type="text" class="form-control" id="newtask" name="task" placeholder="Enter task">
-      </div>
-      <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea class="form-control" id="description" name="description" rows="10" placeholder="Additional details"></textarea>
-        
-        <!-- Dictation Controls -->
-        <div class="btn-group mt-2" role="group" aria-label="Description controls">
-          <button type="button" id="dictateButton" class="btn btn-outline-primary">Dictate</button>
-          <button type="button" id="undoButton" class="btn btn-outline-secondary">Undo</button>
-          <button type="button" id="fixupButton" class="btn btn-outline-info">Fixup</button>
+        <div class="mb-3">
+            <label for="taskSelect" class="form-label">Select Task</label>
+            <!-- Removed name attribute per specification -->
+            <select class="form-select" id="taskSelect" required>
+                <option value="" disabled selected>Select a task</option>
+            </select>
         </div>
-      </div>
-      
-      <button type="submit" class="btn btn-primary me-2">Submit</button>
-      <button type="button" id="skipButton" class="btn btn-secondary">Skip</button>
-      <button type="button" id="copyButton" class="btn btn-warning ms-2">Copy from last</button>
-      <button type="button" id="listButton" class="btn btn-info ms-2">List</button>
-      <div id="error-message" class="text-danger mt-3"></div>
-    </form>
-  </div>
-  
-  <!-- Bootstrap Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Set and display the dialog opened time in a format close to ISO date+time
-      const openTimeElem = document.getElementById('openTime');
-      const now = new Date();
-      const formattedDateTime = now.toISOString().replace('T', ' ').slice(0, 16);
-      const weekday = now.toLocaleDateString(undefined, { weekday: 'long' });
-      openTimeElem.textContent = `Dialog Opened: ${formattedDateTime} (${weekday})`;
-      
-      const taskSelect = document.getElementById('taskSelect');
-      const newTaskInput = document.getElementById('newtask');
-      const logForm = document.getElementById('logForm');
-      const skipButton = document.getElementById('skipButton');
-      const copyButton = document.getElementById('copyButton');
-      const listButton = document.getElementById('listButton');
-      const errorMessage = document.getElementById('error-message');
-      
-      // Fetch tasks from the server
-      fetch('/tasks')
-        .then(response => response.json())
-        .then(tasks => {
-          tasks.forEach(task => {
-            const option = document.createElement('option');
-            option.value = task;
-            option.textContent = task;
-            taskSelect.appendChild(option);
-          });
-          // Add the 'Other' option
-          const otherOption = document.createElement('option');
-          otherOption.value = 'Other';
-          otherOption.textContent = 'Other...';
-          taskSelect.appendChild(otherOption);
-        })
-        .catch(err => {
-          errorMessage.textContent = 'Error loading tasks: ' + err;
-        });
-      
-      // Update newTaskInput based on dropdown selection
-      taskSelect.addEventListener('change', function() {
-        if (this.value === 'Other') {
-          newTaskInput.value = '';
-        } else {
-          newTaskInput.value = this.value;
-        }
-      });
-  
-      // If user types in the new task field manually, set dropdown to 'Other'
-      newTaskInput.addEventListener('input', function() {
-        if (this.value.trim() !== '') {
-          taskSelect.value = 'Other';
-        }
-      });
-      
-      // Handle Copy from last button click to fill task and description
-      copyButton.addEventListener('click', function() {
-        fetch('/logs')
-          .then(response => response.json())
-          .then(function(entries) {
-            if (entries.length > 0) {
-              const lastEntry = entries[0];
-              // Try to set the dropdown to the task if it exists
-              let found = false;
-              for (let i = 0; i < taskSelect.options.length; i++) {
-                if (taskSelect.options[i].value === lastEntry.task) {
-                  taskSelect.value = lastEntry.task;
-                  found = true;
-                  break;
-                }
-              }
-              if (!found) {
-                taskSelect.value = 'Other';
-              }
-              newTaskInput.value = lastEntry.task;
-              document.getElementById('description').value = lastEntry.description;
-            }
-          })
-          .catch(function(error) {
-            errorMessage.textContent = 'Error copying last entry: ' + error;
-          });
-      });
-      
-      // Handle form submission
-      logForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        errorMessage.textContent = '';
-        if (newTaskInput.value.trim() === '') {
-          errorMessage.textContent = 'Please enter a task.';
-          return;
-        }
-  
-        const formData = new FormData(logForm);
-        const params = new URLSearchParams();
-        for (const pair of formData.entries()) {
-          params.append(pair[0], pair[1]);
-        }
-        
-        fetch('/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: params
-        })
-        .then(response => {
-          if (!response.ok) {
-            return response.text().then(text => { throw new Error(text) });
-          }
-          return response.text();
-        })
-        .then(() => {
-          // On submission success, close the tab without showing an alert
-          window.open('', '_self', '');
-          window.close();
-        })
-        .catch(err => {
-          errorMessage.textContent = 'Submission failed: ' + err;
-        });
-      });
-      
-      // Handle skip button click to terminate the server and then close the application
-      skipButton.addEventListener('click', function() {
-        fetch('/skip')
-          .then(() => {
-            window.open('', '_self', '');
-            window.close();
-          })
-          .catch(() => {
-            window.open('', '_self', '');
-            window.close();
-          });
-      });
-      
-      // Handle list button click to open list page in the same window using window.open
-      listButton.addEventListener('click', function() {
-        fetch('/list')
-          .then(response => response.text())
-          .then(html => {
-            document.open();
-            document.write(html);
-            document.close();
-          })
-          .catch(err => {
-            errorMessage.textContent = 'Error loading list: ' + err;
-          });
-      });
+        <div class="mb-3" id="new-task-group">
+            <label for="newtask" class="form-label">Task</label>
+            <!-- Changed name from "newtask" to "task" so that the input field is the one sent -->
+            <input type="text" class="form-control" id="newtask" name="task" placeholder="Enter task">
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="10"
+                      placeholder="Additional details"></textarea>
 
-      // Dictation functionality implementation
-      const descriptionTextArea = document.getElementById('description');
-      const dictateButton = document.getElementById('dictateButton');
-      const undoButton = document.getElementById('undoButton');
-      const fixupButton = document.getElementById('fixupButton');
-      
-      // Store previous states for undo
-      let previousStates = [];
-      
-      // Check for SpeechRecognition support
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      
-      if (!SpeechRecognition) {
-        dictateButton.disabled = true;
-        dictateButton.textContent = 'Dictation Not Supported';
-        errorMessage.textContent = 'Speech recognition is not supported in this browser.';
-      } else {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        let finalTranscript = '';
-        let isRecording = false;
-        
-        // Set up recognition
-        recognition.onresult = (event) => {
-          let interimTranscript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript + ' ';
-            } else {
-              interimTranscript += transcript;
-            }
-          }
-          
-          // Get cursor position
-          const cursorPosition = descriptionTextArea.selectionStart;
-          const beforeCursor = descriptionTextArea.value.substring(0, cursorPosition);
-          const afterCursor = descriptionTextArea.value.substring(cursorPosition);
-          
-          // Update text area with interim results
-          descriptionTextArea.value = beforeCursor + interimTranscript + afterCursor;
-          descriptionTextArea.selectionStart = cursorPosition + interimTranscript.length;
-          descriptionTextArea.selectionEnd = descriptionTextArea.selectionStart;
-        };
-        
-        recognition.onend = () => {
-          // If there was successful dictation, add final transcript to text area
-          if (finalTranscript) {
-            // Save current state for undo
-            previousStates.push(descriptionTextArea.value);
-            
-            // Get cursor position
-            const cursorPosition = descriptionTextArea.selectionStart;
-            const beforeCursor = descriptionTextArea.value.substring(0, cursorPosition);
-            const afterCursor = descriptionTextArea.value.substring(cursorPosition);
-            
-            // Add a space if needed
-            const needsSpaceBefore = beforeCursor.length > 0 && !beforeCursor.endsWith(' ');
-            const needsSpaceAfter = afterCursor.length > 0 && !afterCursor.startsWith(' ');
-            
-            // Update text area with final results
-            descriptionTextArea.value = 
-              beforeCursor + 
-              (needsSpaceBefore ? ' ' : '') + 
-              finalTranscript + 
-              (needsSpaceAfter ? ' ' : '') + 
-              afterCursor;
-              
-            // Position cursor after inserted text
-            const newCursorPosition = beforeCursor.length + 
-                                     (needsSpaceBefore ? 1 : 0) + 
-                                     finalTranscript.length;
-                                     
-            descriptionTextArea.selectionStart = newCursorPosition;
-            descriptionTextArea.selectionEnd = newCursorPosition;
-          }
-          
-          finalTranscript = '';
-          dictateButton.classList.remove('btn-danger');
-          dictateButton.classList.add('btn-outline-primary');
-          dictateButton.textContent = 'Dictate';
-          isRecording = false;
-        };
-        
-        recognition.onerror = (event) => {
-          errorMessage.textContent = 'Dictation error: ' + event.error;
-          recognition.stop();
-        };
-        
-        // Handle dictate button
-        dictateButton.addEventListener('mousedown', () => {
-          if (!isRecording) {
-            // Save current state before starting new dictation
-            previousStates.push(descriptionTextArea.value);
-            
-            dictateButton.classList.remove('btn-outline-primary');
-            dictateButton.classList.add('btn-danger');
-            dictateButton.textContent = 'Dictating...';
-            isRecording = true;
-            finalTranscript = '';
-            recognition.start();
-          }
-        });
-        
-        dictateButton.addEventListener('mouseup', () => {
-          if (isRecording) {
-            recognition.stop();
-          }
-        });
-        
-        // Touch support for mobile
-        dictateButton.addEventListener('touchstart', (e) => {
-          e.preventDefault(); // Prevent default touch behavior
-          if (!isRecording) {
-            // Save current state before starting new dictation
-            previousStates.push(descriptionTextArea.value);
-            
-            dictateButton.classList.remove('btn-outline-primary');
-            dictateButton.classList.add('btn-danger');
-            dictateButton.textContent = 'Dictating...';
-            isRecording = true;
-            finalTranscript = '';
-            recognition.start();
-          }
-        });
-        
-        dictateButton.addEventListener('touchend', (e) => {
-          e.preventDefault(); // Prevent default touch behavior
-          if (isRecording) {
-            recognition.stop();
-          }
-        });
-        
-        // Handle undo button
-        undoButton.addEventListener('click', () => {
-          if (previousStates.length > 0) {
-            descriptionTextArea.value = previousStates.pop();
-          }
-        });
-        
-        // Handle fixup button to improve formatting and correct errors
-        fixupButton.addEventListener('click', () => {
-          const text = descriptionTextArea.value.trim();
-          if (text) {
-            // Save current state for undo
-            previousStates.push(descriptionTextArea.value);
-            
-            // Simple fixup: Fix capitalization and common errors
-            let corrected = text;
-            
-            // Fix capitalization at beginning of sentences
-            corrected = corrected.replace(/(?:^|[.!?]\s+)([a-z])/g, (match, letter) => {
-              return match.replace(letter, letter.toUpperCase());
+            <!-- Dictation Controls -->
+            <div class="btn-group mt-2" role="group" aria-label="Description controls">
+                <button type="button" id="dictateButton" class="btn btn-outline-primary">Dictate</button>
+                <button type="button" id="undoButton" class="btn btn-outline-secondary">Undo</button>
+                <button type="button" id="fixupButton" class="btn btn-outline-info">Fixup</button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary me-2">Submit</button>
+        <button type="button" id="skipButton" class="btn btn-secondary">Skip</button>
+        <button type="button" id="copyButton" class="btn btn-warning ms-2">Copy from last</button>
+        <button type="button" id="listButton" class="btn btn-info ms-2">List</button>
+        <div id="error-message" class="text-danger mt-3"></div>
+    </form>
+</div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set and display the dialog opened time in a format close to ISO date+time
+        const openTimeElem = document.getElementById('openTime');
+        const now = new Date();
+        const formattedDateTime = now.toISOString().replace('T', ' ').slice(0, 16);
+        const weekday = now.toLocaleDateString(undefined, {weekday: 'long'});
+        openTimeElem.textContent = `Dialog Opened: ${formattedDateTime} (${weekday})`;
+
+        const taskSelect = document.getElementById('taskSelect');
+        const newTaskInput = document.getElementById('newtask');
+        const logForm = document.getElementById('logForm');
+        const skipButton = document.getElementById('skipButton');
+        const copyButton = document.getElementById('copyButton');
+        const listButton = document.getElementById('listButton');
+        const errorMessage = document.getElementById('error-message');
+
+        // Fetch tasks from the server
+        fetch('/tasks')
+            .then(response => response.json())
+            .then(tasks => {
+                tasks.forEach(task => {
+                    const option = document.createElement('option');
+                    option.value = task;
+                    option.textContent = task;
+                    taskSelect.appendChild(option);
+                });
+                // Add the 'Other' option
+                const otherOption = document.createElement('option');
+                otherOption.value = 'Other';
+                otherOption.textContent = 'Other...';
+                taskSelect.appendChild(otherOption);
+            })
+            .catch(err => {
+                errorMessage.textContent = 'Error loading tasks: ' + err;
             });
-            
-            // Fix common dictation errors
-            corrected = corrected
-              .replace(/\b(i)\b/g, 'I')  // Capitalize 'I'
-              .replace(/\s+/g, ' ')      // Reduce multiple spaces to one
-              .replace(/\s+([.,;:!?])/g, '$1')  // Remove spaces before punctuation
-              .replace(/comma/gi, ',')   // Replace spelled-out "comma" with ,
-              .replace(/period/gi, '.')  // Replace spelled-out "period" with .
-              .replace(/question mark/gi, '?')  // Replace "question mark" with ?
-              .replace(/exclamation mark|exclamation point/gi, '!') // Replace with !
-              .replace(/new line|newline|new paragraph/gi, '\n\n'); // Add paragraph breaks
-              
-            // Create rudimentary paragraphs
-            if (corrected.length > 100 && !corrected.includes('\n')) {
-              // Look for natural paragraph breaks (end of sentences followed by significant topic shifts)
-              corrected = corrected.replace(/\.\s+([A-Z][a-z]+\s(is|are|was|were|has|have|had|will|would|could|should|in|on|to|for|of|with|by|as|if|then|and|but|or|so)\b)/g, '.\n\n$1');
+
+        // Update newTaskInput based on dropdown selection
+        taskSelect.addEventListener('change', function () {
+            if (this.value === 'Other') {
+                newTaskInput.value = '';
+            } else {
+                newTaskInput.value = this.value;
             }
-            
-            descriptionTextArea.value = corrected;
-          }
         });
-      }
+
+        // If user types in the new task field manually, set dropdown to 'Other'
+        newTaskInput.addEventListener('input', function () {
+            if (this.value.trim() !== '') {
+                taskSelect.value = 'Other';
+            }
+        });
+
+        // Handle Copy from last button click to fill task and description
+        copyButton.addEventListener('click', function () {
+            fetch('/logs')
+                .then(response => response.json())
+                .then(function (entries) {
+                    if (entries.length > 0) {
+                        const lastEntry = entries[0];
+                        // Try to set the dropdown to the task if it exists
+                        let found = false;
+                        for (let i = 0; i < taskSelect.options.length; i++) {
+                            if (taskSelect.options[i].value === lastEntry.task) {
+                                taskSelect.value = lastEntry.task;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            taskSelect.value = 'Other';
+                        }
+                        newTaskInput.value = lastEntry.task;
+                        document.getElementById('description').value = lastEntry.description;
+                    }
+                })
+                .catch(function (error) {
+                    errorMessage.textContent = 'Error copying last entry: ' + error;
+                });
+        });
+
+        // Handle form submission
+        logForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            errorMessage.textContent = '';
+            if (newTaskInput.value.trim() === '') {
+                errorMessage.textContent = 'Please enter a task.';
+                return;
+            }
+
+            const formData = new FormData(logForm);
+            const params = new URLSearchParams();
+            for (const pair of formData.entries()) {
+                params.append(pair[0], pair[1]);
+            }
+
+            fetch('/submit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: params
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text)
+                        });
+                    }
+                    return response.text();
+                })
+                .then(() => {
+                    // On submission success, close the tab without showing an alert
+                    window.open('', '_self', '');
+                    window.close();
+                })
+                .catch(err => {
+                    errorMessage.textContent = 'Submission failed: ' + err;
+                });
+        });
+
+        // Handle skip button click to terminate the server and then close the application
+        skipButton.addEventListener('click', function () {
+            fetch('/skip')
+                .then(() => {
+                    window.open('', '_self', '');
+                    window.close();
+                })
+                .catch(() => {
+                    window.open('', '_self', '');
+                    window.close();
+                });
+        });
+
+        // Handle list button click to open list page in the same window using window.open
+        listButton.addEventListener('click', function () {
+            fetch('/list')
+                .then(response => response.text())
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                })
+                .catch(err => {
+                    errorMessage.textContent = 'Error loading list: ' + err;
+                });
+        });
+
+        // Dictation functionality implementation
+        const descriptionTextArea = document.getElementById('description');
+        const dictateButton = document.getElementById('dictateButton');
+        const undoButton = document.getElementById('undoButton');
+        const fixupButton = document.getElementById('fixupButton');
+
+        // Store previous states for undo
+        let previousStates = [];
+
+        // Check for SpeechRecognition support
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            dictateButton.disabled = true;
+            dictateButton.textContent = 'Dictation Not Supported';
+            errorMessage.textContent = 'Speech recognition is not supported in this browser.';
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            let finalTranscript = '';
+            let isRecording = false;
+
+            // Set up recognition
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                // Get cursor position
+                const cursorPosition = descriptionTextArea.selectionStart;
+                const beforeCursor = descriptionTextArea.value.substring(0, cursorPosition);
+                const afterCursor = descriptionTextArea.value.substring(cursorPosition);
+
+                // Update text area with interim results
+                descriptionTextArea.value = beforeCursor + interimTranscript + afterCursor;
+                descriptionTextArea.selectionStart = cursorPosition + interimTranscript.length;
+                descriptionTextArea.selectionEnd = descriptionTextArea.selectionStart;
+            };
+
+            recognition.onend = () => {
+                // If there was successful dictation, add final transcript to text area
+                if (finalTranscript) {
+                    // Save current state for undo
+                    previousStates.push(descriptionTextArea.value);
+
+                    // Get cursor position
+                    const cursorPosition = descriptionTextArea.selectionStart;
+                    const beforeCursor = descriptionTextArea.value.substring(0, cursorPosition);
+                    const afterCursor = descriptionTextArea.value.substring(cursorPosition);
+
+                    // Add a space if needed
+                    const needsSpaceBefore = beforeCursor.length > 0 && !beforeCursor.endsWith(' ');
+                    const needsSpaceAfter = afterCursor.length > 0 && !afterCursor.startsWith(' ');
+
+                    // Update text area with final results
+                    descriptionTextArea.value =
+                        beforeCursor +
+                        (needsSpaceBefore ? ' ' : '') +
+                        finalTranscript +
+                        (needsSpaceAfter ? ' ' : '') +
+                        afterCursor;
+
+                    // Position cursor after inserted text
+                    const newCursorPosition = beforeCursor.length +
+                        (needsSpaceBefore ? 1 : 0) +
+                        finalTranscript.length;
+
+                    descriptionTextArea.selectionStart = newCursorPosition;
+                    descriptionTextArea.selectionEnd = newCursorPosition;
+                }
+
+                finalTranscript = '';
+                dictateButton.classList.remove('btn-danger');
+                dictateButton.classList.add('btn-outline-primary');
+                dictateButton.textContent = 'Dictate';
+                isRecording = false;
+            };
+
+            recognition.onerror = (event) => {
+                errorMessage.textContent = 'Dictation error: ' + event.error;
+                recognition.stop();
+            };
+
+            // Handle dictate button
+            dictateButton.addEventListener('mousedown', () => {
+                if (!isRecording) {
+                    // Save current state before starting new dictation
+                    previousStates.push(descriptionTextArea.value);
+
+                    dictateButton.classList.remove('btn-outline-primary');
+                    dictateButton.classList.add('btn-danger');
+                    dictateButton.textContent = 'Dictating...';
+                    isRecording = true;
+                    finalTranscript = '';
+                    recognition.start();
+                }
+            });
+
+            dictateButton.addEventListener('mouseup', () => {
+                if (isRecording) {
+                    recognition.stop();
+                }
+            });
+
+            // Touch support for mobile
+            dictateButton.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Prevent default touch behavior
+                if (!isRecording) {
+                    // Save current state before starting new dictation
+                    previousStates.push(descriptionTextArea.value);
+
+                    dictateButton.classList.remove('btn-outline-primary');
+                    dictateButton.classList.add('btn-danger');
+                    dictateButton.textContent = 'Dictating...';
+                    isRecording = true;
+                    finalTranscript = '';
+                    recognition.start();
+                }
+            });
+
+            dictateButton.addEventListener('touchend', (e) => {
+                e.preventDefault(); // Prevent default touch behavior
+                if (isRecording) {
+                    recognition.stop();
+                }
+            });
+
+            // Handle undo button
+            undoButton.addEventListener('click', () => {
+                if (previousStates.length > 0) {
+                    descriptionTextArea.value = previousStates.pop();
+                }
+            });
+
+            // Handle fixup button to improve formatting and correct errors
+            fixupButton.addEventListener('click', () => {
+                const text = descriptionTextArea.value.trim();
+                if (text) {
+                    // Save current state for undo
+                    previousStates.push(descriptionTextArea.value);
+
+                    // Simple fixup: Fix capitalization and common errors
+                    let corrected = text;
+
+                    // Fix capitalization at beginning of sentences
+                    corrected = corrected.replace(/(?:^|[.!?]\s+)([a-z])/g, (match, letter) => {
+                        return match.replace(letter, letter.toUpperCase());
+                    });
+
+                    // Fix common dictation errors
+                    corrected = corrected
+                        .replace(/\b(i)\b/g, 'I')  // Capitalize 'I'
+                        .replace(/\s+/g, ' ')      // Reduce multiple spaces to one
+                        .replace(/\s+([.,;:!?])/g, '$1')  // Remove spaces before punctuation
+                        .replace(/comma/gi, ',')   // Replace spelled-out "comma" with ,
+                        .replace(/period/gi, '.')  // Replace spelled-out "period" with .
+                        .replace(/question mark/gi, '?')  // Replace "question mark" with ?
+                        .replace(/exclamation mark|exclamation point/gi, '!') // Replace with !
+                        .replace(/new line|newline|new paragraph/gi, '\n\n'); // Add paragraph breaks
+
+                    // Create rudimentary paragraphs
+                    if (corrected.length > 100 && !corrected.includes('\n')) {
+                        // Look for natural paragraph breaks (end of sentences followed by significant topic shifts)
+                        corrected = corrected.replace(/\.\s+([A-Z][a-z]+\s(is|are|was|were|has|have|had|will|would|could|should|in|on|to|for|of|with|by|as|if|then|and|but|or|so)\b)/g, '.\n\n$1');
+                    }
+
+                    descriptionTextArea.value = corrected;
+                }
+            });
+        }
     });
-  </script>
+</script>
+<script src="dictation.js"></script>
 </body>
 </html>

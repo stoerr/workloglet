@@ -140,6 +140,18 @@ const server = http.createServer((req, res) => {
         res.end(data);
       }
     });
+  } else if (req.method === 'GET' && pathname === '/dictation.js') {
+    // Serve dictation.js
+    const filePath = path.join(__dirname, 'dictation.js');
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(500, {'Content-Type': 'text/plain'});
+        res.end('Error loading JS file');
+      } else {
+        res.writeHead(200, {'Content-Type': 'application/javascript'});
+        res.end(data);
+      }
+    });
   } else if (req.method === 'GET' && pathname === '/tasks') {
     // Endpoint to return recent unique tasks in JSON format
     const tasks = getRecentTasks();
