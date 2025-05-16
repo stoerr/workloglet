@@ -1,8 +1,12 @@
 #!/bin/bash
 
 # worklog.sh: Start the work hour logging web application.
-
+#
 # Usage: ./worklog.sh [log_directory]
+#
+# The log directory is where weekly work log files are saved. By default, this is './worklog'.
+# Each log entry is appended to a JSONL file named 'worklog_YYYY-WW.jsonl' (one per week) in the log directory.
+# You can specify a different directory as the first argument.
 
 LOG_DIR=${1:-"./worklog"}
 
