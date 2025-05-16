@@ -1,5 +1,5 @@
-// worklog.js: Node.js server for the Work Hour Logging Application (Updated)
-// Usage: node worklog.js [log_directory]
+// worklogserver.js: Node.js server for the Work Hour Logging Application (Updated)
+// Usage: node worklogserver.js [log_directory]
 
 const http = require('http');
 const fs = require('fs');

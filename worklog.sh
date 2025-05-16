@@ -13,7 +13,7 @@ LOG_DIR=$(eval echo $LOG_DIR)
 mkdir -p "$LOG_DIR"
 
 # Start the Node.js application in the background
-node $(dirname $0)/worklog.js "$LOG_DIR" &
+node $(dirname $0)/worklogserver.js "$LOG_DIR" &
 APP_PID=$!
 
 sleep 2 # wait for startup

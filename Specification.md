@@ -108,13 +108,13 @@ An example cron job entry to run every 30 minutes:
 
 ## Architecture
 
-It should consist of a script `worklog.sh` that starts the application, a JavaScript file `worklog.js` that is started with Node.js and an HTML file `worklog.html` that is served by `worklog.js`. It must not rely on any external libraries. The directory should be given as argument to worklog.sh (but with a default value of `./worklog`) and passed as argument to worklog.js. The list page is an HTML file `list.html` that is also served by `worklog.js`. Use Bootstrap for the UI, loaded from CDN.
+It should consist of a script `worklog.sh` that starts the application, a JavaScript file `worklogserver.js` that is started with Node.js and an HTML file `worklog.html` that is served by `worklog.js`. It must not rely on any external libraries. The directory should be given as argument to worklog.sh (but with a default value of `./worklog`) and passed as argument to worklog.js. The list page is an HTML file `list.html` that is also served by `worklog.js`. Use Bootstrap for the UI, loaded from CDN.
 
 The UI should be nicely, friendly and professional looking, with a MacOS-like silvery touch and rounded edges.
 
 ## Notes on Specification and Code Integration
 
-- The current implementation of the web application (files: worklog.html, list.html, worklog.js) closely follows the specification.
+- The current implementation of the web application (files: worklog.html, list.html, worklogserver.js) closely follows the specification.
 - The UI has been adapted to have a clean, MacOS-style look with rounded elements and subtle shadows.
 - One point to note in the specification is that it mentions a shell script (`worklog.sh`) to launch and terminate the application, but this file is not present in the current repository. If needed, this script should be provided to manage the application lifecycle (especially for enforcing the 10-minute inactivity timeout).
 - Take care to open all parts of the application (worklog and list view) in the same browser tab and make sure it 
