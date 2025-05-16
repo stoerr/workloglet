@@ -1,8 +1,6 @@
 // Elements
-const textarea = document.getElementById('dictation-textarea');
-const termsarea = document.getElementById('dictation-termsarea');
-const dictateButton = document.getElementById('dictation-dictate');
-const helpButton = document.getElementById('dictation-help');
+const textarea = document.getElementById('description');
+const dictateButton = document.getElementById('dictateButton');
 
 // Recorder setup
 let recorder;
@@ -16,9 +14,6 @@ let lastTexts = [];
 let lastPosition;
 
 const storage_api_key = 'openai_api_key';
-const storage_relevant_terms = 'net-stoerr-chatgpt-dictation-relevant-terms';
-
-if (!termsarea.value) termsarea.value = localStorage.getItem(storage_relevant_terms) || '';
 
 const getOpenAIKey = () => {
     openaiAPIKey = localStorage.getItem(storage_api_key);
@@ -27,7 +22,6 @@ const getOpenAIKey = () => {
         if (openaiAPIKey) localStorage.setItem(storage_api_key, openaiAPIKey);
     }
     return openaiAPIKey;
-
 };
 
 // Start recording
@@ -67,18 +61,15 @@ const stopRecording = async (event, e1, e2) => {
             const formData = new FormData();
             formData.append('file', blob);
             formData.append('model', 'whisper-1');
-            let value = document.getElementById('dictation-language').value;
+            let value = document.getElementById('dictation-language')?.value;
             if (value) formData.append('language', value);
             // Create a prompt from the existing text to guide the transcription
             let cursorPosition = document.activeElement === textarea ? textarea.selectionStart : lastPosition;
             let textAreaValue = textarea.value || '';
-            let termsAreaValue = termsarea.value;
-            if (termsAreaValue) localStorage.setItem(storage_relevant_terms, termsAreaValue);
             const textBefore = textAreaValue.substring(0, cursorPosition);
             const textAfter = textAreaValue.substring(cursorPosition);
             var promptText = '';
             if (textAfter) promptText = '... ' + textAfter + '\n\n' + '-'.repeat(80) + '\n\n';
-            if (termsAreaValue) promptText += termsAreaValue + '\n\n' + '-'.repeat(80) + '\n\n';
             promptText += ' ';
             if (textBefore) promptText = textBefore;
             if (promptText) formData.append('prompt', promptText);
@@ -148,28 +139,10 @@ const attachEventListeners = () => {
     dictateButton.addEventListener('mouseup', stopRecording);
     fixupButton.addEventListener('click', fixupText);
     undoButton.addEventListener('click', undo);
-
-    document.getElementById('dictation-help').addEventListener('click', function () {
-        $('#helpModal').modal('show');
-    });
 };
 
-// Resize textarea to fill screen space
-function resizeTextarea() {
-    const headerHeight = document.querySelector('.card-title').offsetHeight;
-    const footerHeight = document.querySelector('.card-footer').offsetHeight;
-    const viewportHeight = window.innerHeight;
-    const offset = headerHeight + footerHeight + document.querySelector('.card-footer').offsetHeight; // Correct offset calculation
-    const areasheight = viewportHeight - offset;
-    textarea.style.height = `${areasheight * 9 / 10}px`;
-    termsarea.style.height = `${areasheight / 10}px`;
-}
-
-window.addEventListener('resize', resizeTextarea);
-document.addEventListener('DOMContentLoaded', resizeTextarea);
-
-const fixupButton = document.getElementById('dictation-fixup');
-const undoButton = document.getElementById('dictation-undo');
+const fixupButton = document.getElementById('fixupButton');
+const undoButton = document.getElementById('undoButton');
 
 function undo() {
     if (lastTexts.length > 0) {
