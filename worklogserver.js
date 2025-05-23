@@ -67,7 +67,7 @@ function getRecentTasks() {
         seen.add(entry.task);
         uniqueTasks.push(entry.task);
       }
-      if (uniqueTasks.length >= 20) break;
+      if (uniqueTasks.length >= 50) break;
     }
     return uniqueTasks;
   } catch (err) {

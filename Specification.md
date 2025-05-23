@@ -14,7 +14,7 @@ The Work Hour Logging Application is a lightweight web-based tool designed to he
 
 2. **Web Application**
     - Provides a simple UI for logging work.
-    - Offers a dropdown list with the last 20 tasks, retrieved from the last 3 worklog files.
+    - Offers a dropdown list with the last 50 tasks, retrieved from the last 3 worklog files.
     - Allows entry of a new task if not in the list.
     - Includes a free-text field for additional details.
     - Sends the logged data to a JSONL file and exits upon submission.
@@ -61,7 +61,7 @@ Example entry in a weekly log file:
 A simple web page with:
 
 - The date and time the dialog was opened, in the same format as in the list.
-- A dropdown menu listing the last 20 tasks, based on the last 3 worklog files. The entries in the dropdown are sorted by the most recent date, but should be unique.
+- A dropdown menu listing the last 50 tasks, based on the last 3 worklog files. The entries in the dropdown are sorted by the most recent date, but should be unique.
 - A text input field for new task entry. A drop down change should fill that field with the selected task, "other" 
   clears it. That's what will be saved to the worklog - the drop down is just filling it.
   If the text field is filled, then the drop down should be set to "other".
