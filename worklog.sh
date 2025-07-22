@@ -22,20 +22,20 @@ APP_PID=$!
 
 sleep 2 # wait for startup
 
-# Open the default browser to the application (assume port 3000)
+# Open the default browser to the application (assume port 3852)
 
 case "$(uname)" in
   Darwin*)
-    open http://localhost:3000
+    open http://localhost:3852
     ;;
   Linux*)
-    xdg-open http://localhost:3000
+    xdg-open http://localhost:3852
     ;;
   CYGWIN*|MINGW*)
-    start http://localhost:3000
+    start http://localhost:3852
     ;;
   *)
-    echo "Please open http://localhost:3000 in your browser."
+    echo "Please open http://localhost:3852 in your browser."
     ;;
 esac
 

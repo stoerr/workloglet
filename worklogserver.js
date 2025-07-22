@@ -15,7 +15,7 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
-const PORT = 3000;
+const PORT = 3852;
 
 // Helper: Get ISO week number and year (robust implementation)
 function getISOWeek(date) {
